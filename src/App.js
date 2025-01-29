@@ -67,6 +67,15 @@ function App() {
 
   return (
     <div className="container my-5">
+      {/* Logo centrado */}
+      <div className="text-center mb-4">
+        <img
+          src="/logo.png"
+          alt="Logo Finca el Fede"
+          style={{ maxWidth: '200px' }}
+        />
+      </div>
+
       <h1 className="mb-4">Finca el Fede</h1>
 
       <div className="row">
