@@ -1,30 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { db } from './firebase';
-// Importamos las funciones de Firestore que vamos a usar
-import {
-  collection,
-  onSnapshot,
-  addDoc,
-  doc,
-  deleteDoc,
-  updateDoc,
-} from 'firebase/firestore';
+import React, { useState } from 'react';
 
 /* 
   1) Calculadora de costos
 */
 function CalculatorTab() {
   const sociosIniciales = [
-    'Diego N',
-    'Diego T',
-    'Fede',
-    'Gabito',
-    'Gena',
-    'Jhonny',
-    'Juampi',
-    'Marco',
-    'Nano',
-    'Sher',
+    'Diego N', 'Diego T', 'Fede', 'Gabito', 'Gena',
+    'Jhonny', 'Juampi', 'Marco', 'Nano', 'Sher'
   ];
 
   const [socios, setSocios] = useState(
@@ -207,108 +189,7 @@ function InfoTab() {
 }
 
 /*
-  3) Lista de Compras (Firestore)
-*/
-function ShoppingListTab() {
-  const [items, setItems] = useState([]);
-  const [newItem, setNewItem] = useState('');
-  const [editId, setEditId] = useState(null);
-
-  // Al montar, escuchamos los cambios en la colección "compras" en tiempo real
-  useEffect(() => {
-    const itemsRef = collection(db, 'compras');
-    const unsubscribe = onSnapshot(itemsRef, (snapshot) => {
-      const temp = [];
-      snapshot.forEach((doc) => {
-        temp.push({ id: doc.id, ...doc.data() });
-      });
-      setItems(temp);
-    });
-
-    return () => unsubscribe(); // Nos desuscribimos al desmontar
-  }, []);
-
-  const addOrUpdateItem = async () => {
-    if (!newItem.trim()) return;
-
-    if (editId) {
-      // Modo edición
-      const docRef = doc(db, 'compras', editId);
-      await updateDoc(docRef, { text: newItem.trim() });
-      setEditId(null);
-    } else {
-      // Modo agregar
-      const itemsRef = collection(db, 'compras');
-      await addDoc(itemsRef, { text: newItem.trim() });
-    }
-    setNewItem('');
-  };
-
-  const startEdit = (id, currentText) => {
-    setEditId(id);
-    setNewItem(currentText);
-  };
-
-  const removeItem = async (id) => {
-    const docRef = doc(db, 'compras', id);
-    await deleteDoc(docRef);
-  };
-
-  return (
-    <div>
-      <h2>Lista de Compras (Firestore)</h2>
-      <div className="card my-4">
-        <div className="card-header">Productos</div>
-        <div className="card-body">
-          <div className="mb-3 d-flex">
-            <input
-              type="text"
-              className="form-control me-2"
-              placeholder="Producto..."
-              value={newItem}
-              onChange={(e) => setNewItem(e.target.value)}
-            />
-            <button className="btn btn-success" onClick={addOrUpdateItem}>
-              {editId ? 'Guardar' : 'Agregar'}
-            </button>
-          </div>
-
-          {items.length === 0 ? (
-            <p className="text-muted">No hay productos en la lista.</p>
-          ) : (
-            <ul className="list-group">
-              {items.map((item) => (
-                <li
-                  key={item.id}
-                  className="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  {item.text}
-                  <div>
-                    <button
-                      className="btn btn-sm btn-warning me-2"
-                      onClick={() => startEdit(item.id, item.text)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => removeItem(item.id)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/*
-  Componente principal con pestañas
+  Componente principal con dos pestañas (Calculadora, Información)
 */
 function App() {
   // Manejo de la pestaña activa
@@ -343,20 +224,11 @@ function App() {
             Información
           </button>
         </li>
-        <li className="nav-item">
-          <button
-            className={`nav-link ${activeTab === 'compras' ? 'active' : ''}`}
-            onClick={() => setActiveTab('compras')}
-          >
-            Lista de Compras
-          </button>
-        </li>
       </ul>
 
       {/* Renderizado condicional según la pestaña */}
       {activeTab === 'calculadora' && <CalculatorTab />}
       {activeTab === 'info' && <InfoTab />}
-      {activeTab === 'compras' && <ShoppingListTab />}
     </div>
   );
 }
