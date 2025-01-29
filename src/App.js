@@ -159,6 +159,29 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* SECCIÓN NUEVA: UBICACIÓN & HORARIOS */}
+      <div className="card mt-4">
+        <div className="card-header">Ubicación y Horarios</div>
+        <div className="card-body">
+          <p>
+            <strong>Dirección:</strong>{' '}
+            <a
+              href="https://maps.app.goo.gl/uqrEtoXgjGuuL4KV9"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Ver en Google Maps
+            </a>
+          </p>
+          <p>
+            <strong>Horario de Entrada:</strong> Viernes 11:00 AM
+          </p>
+          <p>
+            <strong>Horario de Salida:</strong> Sábado 12:00 PM
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
