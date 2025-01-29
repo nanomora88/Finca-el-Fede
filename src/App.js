@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 
-const sociosIniciales = [
-  'Diego N', 'Diego T', 'Fede', 'Gabito', 'Gena',
-  'Jhonny', 'Juampi', 'Marco', 'Nano', 'Sher'
-];
+/* 
+  1) Componente: Calculadora de costos
+*/
+function CalculatorTab() {
+  const sociosIniciales = [
+    'Diego N', 'Diego T', 'Fede', 'Gabito', 'Gena',
+    'Jhonny', 'Juampi', 'Marco', 'Nano', 'Sher'
+  ];
 
-function App() {
   const [socios, setSocios] = useState(
     sociosIniciales.map((nombre) => ({ nombre, presente: false }))
   );
@@ -66,20 +69,11 @@ function App() {
   };
 
   return (
-    <div className="container my-5">
-      {/* Logo centrado */}
-      <div className="text-center mb-4">
-        <img
-          src="/logo.png"
-          alt="Logo Finca el Fede"
-          style={{ maxWidth: '200px' }}
-        />
-      </div>
-
-      <h1 className="mb-4">Finca el Fede</h1>
-
+    <div>
+      <h2 className="mb-4">Calculadora</h2>
+      {/* Panel de Socios e Invitados */}
       <div className="row">
-        {/* Panel para SOCIOS */}
+        {/* SOCIOS */}
         <div className="col-md-6 mb-4">
           <div className="card">
             <div className="card-header">Socios</div>
@@ -102,7 +96,7 @@ function App() {
           </div>
         </div>
 
-        {/* Panel para INVITADOS */}
+        {/* INVITADOS */}
         <div className="col-md-6 mb-4">
           <div className="card">
             <div className="card-header">Invitados</div>
@@ -159,9 +153,18 @@ function App() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
 
-      {/* SECCIÓN NUEVA: UBICACIÓN & HORARIOS */}
-      <div className="card mt-4">
+/*
+  2) Componente: Información de la finca
+*/
+function InfoTab() {
+  return (
+    <div>
+      <h2>Información de la Finca</h2>
+      <div className="card my-4">
         <div className="card-header">Ubicación y Horarios</div>
         <div className="card-body">
           <p>
@@ -182,6 +185,148 @@ function App() {
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/*
+  3) Componente: Lista de Compras (To-Do)
+*/
+function ShoppingListTab() {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState('');
+  const [editIndex, setEditIndex] = useState(-1);
+
+  // Agregar / Guardar
+  const addItem = () => {
+    if (!newItem.trim()) return;
+    if (editIndex >= 0) {
+      // Modo edición
+      const updated = [...items];
+      updated[editIndex] = newItem.trim();
+      setItems(updated);
+      setEditIndex(-1);
+    } else {
+      // Modo agregar
+      setItems([...items, newItem.trim()]);
+    }
+    setNewItem('');
+  };
+
+  // Editar un item
+  const startEdit = (index) => {
+    setEditIndex(index);
+    setNewItem(items[index]);
+  };
+
+  // Eliminar un item
+  const removeItem = (index) => {
+    const updated = items.filter((_, i) => i !== index);
+    setItems(updated);
+  };
+
+  return (
+    <div>
+      <h2>Lista de Compras</h2>
+      <div className="card my-4">
+        <div className="card-header">Productos</div>
+        <div className="card-body">
+          <div className="mb-3 d-flex">
+            <input
+              type="text"
+              className="form-control me-2"
+              placeholder="Agregar producto..."
+              value={newItem}
+              onChange={(e) => setNewItem(e.target.value)}
+            />
+            <button className="btn btn-success" onClick={addItem}>
+              {editIndex >= 0 ? 'Guardar' : 'Agregar'}
+            </button>
+          </div>
+
+          {items.length === 0 ? (
+            <p className="text-muted">No hay productos en la lista.</p>
+          ) : (
+            <ul className="list-group">
+              {items.map((item, i) => (
+                <li
+                  key={i}
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                >
+                  {item}
+                  <div>
+                    <button
+                      className="btn btn-sm btn-warning me-2"
+                      onClick={() => startEdit(i)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => removeItem(i)}
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/*
+  Componente principal con pestañas
+*/
+function App() {
+  const [activeTab, setActiveTab] = useState('calculadora');
+
+  return (
+    <div className="container my-5">
+      {/* Logo centrado */}
+      <div className="text-center mb-4">
+        <img
+          src="/logo.png"
+          alt="Logo Finca el Fede"
+          style={{ maxWidth: '200px' }}
+        />
+      </div>
+
+      {/* Navegación por pestañas */}
+      <ul className="nav nav-tabs mb-4">
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'calculadora' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calculadora')}
+          >
+            Calculadora
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'info' ? 'active' : ''}`}
+            onClick={() => setActiveTab('info')}
+          >
+            Información
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            className={`nav-link ${activeTab === 'compras' ? 'active' : ''}`}
+            onClick={() => setActiveTab('compras')}
+          >
+            Lista de Compras
+          </button>
+        </li>
+      </ul>
+
+      {/* Renderizado condicional según la pestaña activa */}
+      {activeTab === 'calculadora' && <CalculatorTab />}
+      {activeTab === 'info' && <InfoTab />}
+      {activeTab === 'compras' && <ShoppingListTab />}
     </div>
   );
 }
