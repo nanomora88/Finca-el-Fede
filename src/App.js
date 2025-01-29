@@ -1,12 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { db } from './firebase';
+// Importamos las funciones de Firestore que vamos a usar
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  doc,
+  deleteDoc,
+  updateDoc,
+} from 'firebase/firestore';
 
 /* 
-  1) Componente: Calculadora de costos
+  1) Calculadora de costos
 */
 function CalculatorTab() {
   const sociosIniciales = [
-    'Diego N', 'Diego T', 'Fede', 'Gabito', 'Gena',
-    'Jhonny', 'Juampi', 'Marco', 'Nano', 'Sher'
+    'Diego N',
+    'Diego T',
+    'Fede',
+    'Gabito',
+    'Gena',
+    'Jhonny',
+    'Juampi',
+    'Marco',
+    'Nano',
+    'Sher',
   ];
 
   const [socios, setSocios] = useState(
@@ -71,7 +89,6 @@ function CalculatorTab() {
   return (
     <div>
       <h2 className="mb-4">Calculadora</h2>
-      {/* Panel de Socios e Invitados */}
       <div className="row">
         {/* SOCIOS */}
         <div className="col-md-6 mb-4">
@@ -158,7 +175,7 @@ function CalculatorTab() {
 }
 
 /*
-  2) Componente: Información de la finca
+  2) Información de la finca
 */
 function InfoTab() {
   return (
@@ -190,44 +207,56 @@ function InfoTab() {
 }
 
 /*
-  3) Componente: Lista de Compras (To-Do)
+  3) Lista de Compras (Firestore)
 */
 function ShoppingListTab() {
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState('');
-  const [editIndex, setEditIndex] = useState(-1);
+  const [editId, setEditId] = useState(null);
 
-  // Agregar / Guardar
-  const addItem = () => {
+  // Al montar, escuchamos los cambios en la colección "compras" en tiempo real
+  useEffect(() => {
+    const itemsRef = collection(db, 'compras');
+    const unsubscribe = onSnapshot(itemsRef, (snapshot) => {
+      const temp = [];
+      snapshot.forEach((doc) => {
+        temp.push({ id: doc.id, ...doc.data() });
+      });
+      setItems(temp);
+    });
+
+    return () => unsubscribe(); // Nos desuscribimos al desmontar
+  }, []);
+
+  const addOrUpdateItem = async () => {
     if (!newItem.trim()) return;
-    if (editIndex >= 0) {
+
+    if (editId) {
       // Modo edición
-      const updated = [...items];
-      updated[editIndex] = newItem.trim();
-      setItems(updated);
-      setEditIndex(-1);
+      const docRef = doc(db, 'compras', editId);
+      await updateDoc(docRef, { text: newItem.trim() });
+      setEditId(null);
     } else {
       // Modo agregar
-      setItems([...items, newItem.trim()]);
+      const itemsRef = collection(db, 'compras');
+      await addDoc(itemsRef, { text: newItem.trim() });
     }
     setNewItem('');
   };
 
-  // Editar un item
-  const startEdit = (index) => {
-    setEditIndex(index);
-    setNewItem(items[index]);
+  const startEdit = (id, currentText) => {
+    setEditId(id);
+    setNewItem(currentText);
   };
 
-  // Eliminar un item
-  const removeItem = (index) => {
-    const updated = items.filter((_, i) => i !== index);
-    setItems(updated);
+  const removeItem = async (id) => {
+    const docRef = doc(db, 'compras', id);
+    await deleteDoc(docRef);
   };
 
   return (
     <div>
-      <h2>Lista de Compras</h2>
+      <h2>Lista de Compras (Firestore)</h2>
       <div className="card my-4">
         <div className="card-header">Productos</div>
         <div className="card-body">
@@ -235,12 +264,12 @@ function ShoppingListTab() {
             <input
               type="text"
               className="form-control me-2"
-              placeholder="Agregar producto..."
+              placeholder="Producto..."
               value={newItem}
               onChange={(e) => setNewItem(e.target.value)}
             />
-            <button className="btn btn-success" onClick={addItem}>
-              {editIndex >= 0 ? 'Guardar' : 'Agregar'}
+            <button className="btn btn-success" onClick={addOrUpdateItem}>
+              {editId ? 'Guardar' : 'Agregar'}
             </button>
           </div>
 
@@ -248,22 +277,22 @@ function ShoppingListTab() {
             <p className="text-muted">No hay productos en la lista.</p>
           ) : (
             <ul className="list-group">
-              {items.map((item, i) => (
+              {items.map((item) => (
                 <li
-                  key={i}
+                  key={item.id}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
-                  {item}
+                  {item.text}
                   <div>
                     <button
                       className="btn btn-sm btn-warning me-2"
-                      onClick={() => startEdit(i)}
+                      onClick={() => startEdit(item.id, item.text)}
                     >
                       Editar
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
-                      onClick={() => removeItem(i)}
+                      onClick={() => removeItem(item.id)}
                     >
                       Eliminar
                     </button>
@@ -282,11 +311,12 @@ function ShoppingListTab() {
   Componente principal con pestañas
 */
 function App() {
+  // Manejo de la pestaña activa
   const [activeTab, setActiveTab] = useState('calculadora');
 
   return (
     <div className="container my-5">
-      {/* Logo centrado */}
+      {/* Logo (opcional, si tenés logo.png en /public) */}
       <div className="text-center mb-4">
         <img
           src="/logo.png"
@@ -323,7 +353,7 @@ function App() {
         </li>
       </ul>
 
-      {/* Renderizado condicional según la pestaña activa */}
+      {/* Renderizado condicional según la pestaña */}
       {activeTab === 'calculadora' && <CalculatorTab />}
       {activeTab === 'info' && <InfoTab />}
       {activeTab === 'compras' && <ShoppingListTab />}
